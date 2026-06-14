@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PWR Wash — Job Profit</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -18,40 +19,26 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{font-family:'DM Sans',sans-serif;background:#F4F6F9;color:var(--gray);font-size:14px;line-height:1.5;min-height:100vh}
   #app{max-width:480px;margin:0 auto;min-height:100vh;background:#F4F6F9;position:relative;padding-bottom:20px}
-
-  /* ── TOPBAR ── */
   .topbar{background:var(--blue);padding:14px 16px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(27,79,138,.25)}
   .topbar-inner{display:flex;justify-content:space-between;align-items:center}
   .topbar h1{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.3px}
   .topbar-sub{font-size:11px;color:#B5D4F4;margin-top:1px}
   .topbar-btn{width:32px;height:32px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:none;color:#fff;font-size:20px;line-height:1;flex-shrink:0}
   .topbar-btn:active{background:rgba(255,255,255,.3)}
-
-  /* ── NAV ── */
   .nav{display:flex;background:#fff;border-bottom:1px solid var(--border);position:sticky;top:62px;z-index:99}
   .nav-btn{flex:1;padding:10px 2px 9px;font-size:11px;font-weight:500;color:var(--gray-m);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;font-family:'DM Sans',sans-serif}
   .nav-btn.active{color:var(--blue);border-bottom-color:var(--blue)}
-
-  /* ── VIEWS ── */
   .view{display:none;padding:14px 14px 32px;animation:fadeIn .18s ease}
   .view.active{display:block}
   @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
-
-  /* ── CARDS ── */
   .card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:14px;margin-bottom:10px}
   .card-sm{padding:10px 12px}
-
-  /* ── KPIs ── */
   .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
   .kpi{background:#fff;border-radius:var(--rs);border:1px solid var(--border);padding:10px 10px 8px}
   .kpi-label{font-size:10px;color:var(--gray-m);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
   .kpi-val{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-.5px}
   .c-blue{color:var(--blue)} .c-green{color:var(--green)} .c-amber{color:var(--amber)} .c-red{color:var(--red)}
-
-  /* ── SEC TITLE ── */
   .sec{font-size:11px;font-weight:600;color:var(--gray-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
-
-  /* ── PROJECT CARD ── */
   .proj-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
   .proj-card:active{border-color:var(--blue-m)}
   .proj-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
@@ -65,8 +52,6 @@
   .prog-bg{height:5px;background:#EEE;border-radius:3px;margin:4px 0;overflow:hidden}
   .prog-fill{height:5px;border-radius:3px;transition:width .5s ease}
   .proj-nums{display:flex;justify-content:space-between;font-size:11px;color:var(--gray-m);font-family:'DM Mono',monospace}
-
-  /* ── BUTTONS ── */
   .add-btn{width:100%;padding:10px;border:1.5px dashed #C0D4E8;border-radius:var(--rs);font-size:13px;color:var(--blue);background:var(--blue-ll);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500}
   .add-btn:active{background:var(--blue-l)}
   .primary-btn{width:100%;padding:13px;background:var(--blue);color:#fff;border-radius:var(--rs);font-size:15px;font-weight:600;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:-.2px;transition:background .15s}
@@ -75,26 +60,24 @@
   .ghost-btn{background:none;border:none;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:11px;color:var(--blue);font-weight:500}
   .back-btn{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--blue);font-weight:500;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;margin-bottom:12px;padding:0}
 
-  /* ── FORM ── */
+  /* export button */
+  .export-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;background:#fff;color:var(--green);border:1.5px solid var(--green);border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;margin-bottom:10px}
+  .export-btn:active{background:var(--green-l)}
+  .export-btn.loading{opacity:.6;cursor:not-allowed}
+
   .fg{margin-bottom:13px}
   .fl{font-size:11px;font-weight:600;color:var(--gray-m);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px}
   .fi{width:100%;height:40px;border:1px solid #D0D8E0;border-radius:var(--rs);background:#fff;padding:0 12px;font-size:14px;color:var(--gray);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
   .fi:focus{border-color:var(--blue)}
   select.fi{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
   .fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-  /* ── CHIPS ── */
   .chip-grid{display:flex;flex-wrap:wrap;gap:7px}
   .chip{padding:6px 11px;border-radius:999px;font-size:12px;font-weight:500;border:1px solid #D0D8E0;color:var(--gray-m);background:#fff;cursor:pointer;transition:all .12s;user-select:none;text-align:center}
   .chip .chip-rate{display:block;font-size:10px;opacity:.65;font-family:'DM Mono',monospace}
   .chip.sel{background:var(--blue-l);color:var(--blue);border-color:#85B7EB;font-weight:600}
   .chip.sel::before{content:'✓ '}
-
-  /* ── COST PREVIEW ── */
   .cost-prev{text-align:center;font-size:12px;color:var(--gray-m);margin-bottom:10px}
   .cost-prev span{font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--blue)}
-
-  /* ── ENTRIES ── */
   .entry-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid #F0F0F0}
   .entry-row:last-child{border-bottom:none}
   .entry-day{font-size:13px;font-weight:500;color:var(--gray)}
@@ -102,8 +85,6 @@
   .entry-note{font-size:11px;color:var(--amber);margin-top:2px;font-style:italic}
   .entry-amt{font-size:14px;font-weight:600;color:var(--blue);font-family:'DM Mono',monospace;white-space:nowrap;margin-left:12px}
   .entry-del{font-size:11px;color:var(--red);cursor:pointer;margin-top:3px;background:none;border:none;font-family:'DM Sans',sans-serif;padding:0}
-
-  /* ── MONTH ROWS ── */
   .month-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #F0F0F0;cursor:pointer}
   .month-row:last-child{border-bottom:none}
   .month-name{font-size:14px;font-weight:600;color:var(--gray)}
@@ -115,49 +96,31 @@
   .month-expand{display:none;border-left:3px solid var(--blue-l);padding-left:10px;margin-bottom:8px}
   .month-proj-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #F8F8F8;cursor:pointer}
   .month-proj-row:last-child{border-bottom:none}
-
-  /* ── TOTALS ── */
   .total-row{background:var(--blue);border-radius:var(--rs);padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
   .total-lbl{font-size:12px;color:rgba(255,255,255,.7);font-weight:500}
   .total-val{font-size:18px;font-weight:600;color:#fff;font-family:'DM Mono',monospace}
-
-  /* ── MODAL ── */
   .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center}
   .modal-bg.open{display:flex}
   .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 36px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto}
   .modal-handle{width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 16px}
   .modal-title{font-size:16px;font-weight:600;color:var(--gray);margin-bottom:14px}
   .modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-m);line-height:1;margin-top:-4px}
-
-  /* ── ALERT ── */
   .alert{padding:10px 12px;border-radius:var(--rs);font-size:12px;margin-bottom:10px;font-weight:500;line-height:1.4}
   .alert-amber{background:var(--amber-l);color:var(--amber)}
   .alert-green{background:var(--green-l);color:var(--green)}
   .alert-red{background:var(--red-l);color:var(--red)}
   .alert-blue{background:var(--blue-l);color:var(--blue)}
-
-  /* ── SUM TABLE ── */
   .sum-tbl{width:100%;font-size:13px;border-collapse:collapse}
   .sum-tbl td{padding:5px 0}
   .sum-tbl td:last-child{text-align:right;font-family:'DM Mono',monospace;font-weight:500}
   .sum-tbl .tot td{font-weight:600;font-size:14px;border-top:1px solid #EEE;padding-top:8px}
-
-  /* ── DIVIDER ── */
   .div{height:1px;background:#F0F0F0;margin:12px 0}
-
-  /* ── EMPTY ── */
   .empty{text-align:center;padding:28px 16px;color:var(--gray-m);font-size:13px}
   .empty-icon{font-size:28px;margin-bottom:8px}
-
-  /* ── TOAST ── */
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--gray);color:#fff;padding:10px 20px;border-radius:999px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
   .toast.show{opacity:1}
-
-  /* ── SPINNER ── */
   .spinner{width:20px;height:20px;border:2px solid rgba(27,79,138,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:20px auto}
   @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* ── SETUP SCREEN ── */
   .setup-wrap{padding:24px 16px;max-width:480px;margin:0 auto}
   .setup-logo{font-size:28px;font-weight:600;color:var(--blue);margin-bottom:4px;letter-spacing:-.5px}
   .setup-card{background:#fff;border-radius:var(--r);border:1px solid var(--border);padding:18px;margin-bottom:14px}
@@ -172,12 +135,10 @@
 </head>
 <body>
 
-<!-- ══ SETUP SCREEN (shown when not configured) ══════════════════════════════ -->
 <div id="setup-screen" style="display:none">
   <div class="setup-wrap">
     <div class="setup-logo">PWR Wash</div>
     <p style="font-size:13px;color:var(--gray-m);margin-bottom:20px">Configura tu base de datos para empezar</p>
-
     <div class="setup-card">
       <div class="setup-step">
         <div class="step-num">1</div>
@@ -198,9 +159,7 @@
         <div class="step-body">
           <div class="step-title">Crea las tablas — copia este SQL</div>
           <div class="step-desc">En tu proyecto → SQL Editor → New Query → pega esto y presiona Run:</div>
-          <div class="step-code" id="sql-code" onclick="copySql()">
-            -- Click para copiar el SQL completo
-          </div>
+          <div class="step-code" id="sql-code" onclick="copySql()">-- Click para copiar el SQL completo</div>
           <button onclick="copySql()" style="margin-top:6px;font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500">📋 Copiar SQL</button>
         </div>
       </div>
@@ -208,30 +167,15 @@
         <div class="step-num">4</div>
         <div class="step-body">
           <div class="step-title">Copia tus credenciales aquí</div>
-          <div class="step-desc">En tu proyecto Supabase → Settings → API → copia la URL y la anon key</div>
-        </div>
-      </div>
-      <div class="setup-step" style="margin-bottom:0">
-        <div class="step-num">5</div>
-        <div class="step-body">
-          <div class="step-title">Comparte este archivo con tu equipo</div>
-          <div class="step-desc">Una vez configurado, todos usan el mismo archivo .html con las mismas credenciales y los datos se sincronizan en tiempo real</div>
+          <div class="step-desc">En tu proyecto Supabase → Settings → API → copia la URL y la anon key (la que empieza con eyJ...)</div>
         </div>
       </div>
     </div>
-
     <div class="config-section">
-      <div class="fg">
-        <label class="fl">Supabase URL</label>
-        <input class="fi" id="cfg-url" placeholder="https://xxxxxxxxxxxx.supabase.co">
-      </div>
-      <div class="fg">
-        <label class="fl">Supabase Anon Key</label>
-        <input class="fi" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-      </div>
+      <div class="fg"><label class="fl">Supabase URL</label><input class="fi" id="cfg-url" placeholder="https://xxxxxxxxxxxx.supabase.co"></div>
+      <div class="fg"><label class="fl">Supabase Anon Key (eyJ...)</label><input class="fi" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></div>
       <button class="primary-btn" onclick="saveConfig()">Conectar y empezar</button>
     </div>
-
     <div style="margin-top:12px;text-align:center">
       <button onclick="useDemoMode()" style="font-size:12px;color:var(--gray-m);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif">
         Usar modo demo (solo este dispositivo, sin Supabase)
@@ -240,7 +184,6 @@
   </div>
 </div>
 
-<!-- ══ MAIN APP ══════════════════════════════════════════════════════════════ -->
 <div id="app" style="display:none">
   <div class="topbar">
     <div class="topbar-inner">
@@ -260,7 +203,6 @@
   <div class="view" id="view-months"></div>
 </div>
 
-<!-- ══ MODALS ════════════════════════════════════════════════════════════════ -->
 <div class="modal-bg" id="m-project">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -313,7 +255,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ══ CONFIG ════════════════════════════════════════════════════════════════════
+// ══ SQL SCHEMA ════════════════════════════════════════════════════════════════
 const SQL_SCHEMA = `
 create table if not exists employees (
   id text primary key,
@@ -321,7 +263,6 @@ create table if not exists employees (
   rate numeric not null,
   created_at timestamptz default now()
 );
-
 create table if not exists projects (
   id text primary key,
   name text not null,
@@ -332,7 +273,6 @@ create table if not exists projects (
   otros jsonb default '[]',
   created_at timestamptz default now()
 );
-
 create table if not exists entries (
   id text primary key,
   project_id text references projects(id),
@@ -343,11 +283,9 @@ create table if not exists entries (
   note text default '',
   created_at timestamptz default now()
 );
-
 alter table employees enable row level security;
 alter table projects  enable row level security;
 alter table entries   enable row level security;
-
 create policy "public_all_employees" on employees for all using (true) with check (true);
 create policy "public_all_projects"  on projects  for all using (true) with check (true);
 create policy "public_all_entries"   on entries   for all using (true) with check (true);
@@ -358,20 +296,18 @@ let SUPABASE_KEY = '';
 let DEMO_MODE = false;
 let localDB = {employees:[], projects:[], entries:[], nextId:1};
 
-// ── MONTHS / HELPERS ──────────────────────────────────────────────────────────
-const MES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const MES  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MES3 = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const fmt$ = n => '$' + Math.round(n).toLocaleString('en-US');
 const fmtK = n => n >= 1000 ? '$' + (n/1000).toFixed(0) + 'k' : fmt$(n);
 const fmtP = n => (n*100).toFixed(1) + '%';
 const uid  = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
 const fmtDate = s => { const [y,m,d]=s.split('-'); return `${parseInt(d)} ${MES3[parseInt(m)-1]}`; };
-
 function badgeCls(m) { return m>=.4?'bg-green':m>=.2?'bg-amber':'bg-red'; }
 function barClr(m)   { return m>=.4?'#639922':m>=.2?'#BA7517':'#E24B4A'; }
 function netClr(m)   { return m>=.4?'var(--green)':m>=.2?'var(--amber)':'var(--red)'; }
 
-// ── SUPABASE FETCH ────────────────────────────────────────────────────────────
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
 async function sbFetch(path, opts={}) {
   const r = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
     headers: {'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
@@ -387,115 +323,68 @@ const sbPost   = (t,d) => sbFetch(t, {method:'POST', body:JSON.stringify(d)});
 const sbDelete = (t,id) => sbFetch(`${t}?id=eq.${id}`, {method:'DELETE'});
 const sbPatch  = (t,id,d) => sbFetch(`${t}?id=eq.${id}`, {method:'PATCH', body:JSON.stringify(d)});
 
-// ── DATA LAYER (handles both Supabase and demo mode) ──────────────────────────
-async function getEmployees() {
-  if (DEMO_MODE) return localDB.employees;
-  return sbGet('employees?order=name');
-}
-async function getProjects() {
-  if (DEMO_MODE) return localDB.projects;
-  return sbGet('projects?order=created_at');
-}
-async function getEntries(projectId) {
-  if (DEMO_MODE) return localDB.entries.filter(e => e.project_id === projectId);
-  return sbGet(`entries?project_id=eq.${projectId}&order=date.desc`);
-}
-async function getAllEntries() {
-  if (DEMO_MODE) return localDB.entries;
-  return sbGet('entries?order=date.desc');
-}
-async function insertEmployee(emp) {
-  if (DEMO_MODE) { localDB.employees.push(emp); saveLocal(); return emp; }
-  const r = await sbPost('employees', emp);
-  return Array.isArray(r) ? r[0] : r;
-}
-async function deleteEmployee(id) {
-  if (DEMO_MODE) { localDB.employees = localDB.employees.filter(e=>e.id!==id); saveLocal(); return; }
-  await sbDelete('employees', id);
-}
-async function insertProject(p) {
-  if (DEMO_MODE) { localDB.projects.push(p); saveLocal(); return p; }
-  const r = await sbPost('projects', p);
-  return Array.isArray(r) ? r[0] : r;
-}
-async function insertEntry(e) {
-  if (DEMO_MODE) { localDB.entries.push(e); saveLocal(); return e; }
-  const r = await sbPost('entries', e);
-  return Array.isArray(r) ? r[0] : r;
-}
-async function deleteEntry(id) {
-  if (DEMO_MODE) { localDB.entries = localDB.entries.filter(e=>e.id!==id); saveLocal(); return; }
-  await sbDelete('entries', id);
-}
+async function getEmployees() { return DEMO_MODE ? localDB.employees : sbGet('employees?order=name'); }
+async function getProjects()  { return DEMO_MODE ? localDB.projects  : sbGet('projects?order=created_at'); }
+async function getEntries(pid){ return DEMO_MODE ? localDB.entries.filter(e=>e.project_id===pid) : sbGet(`entries?project_id=eq.${pid}&order=date.desc`); }
+async function getAllEntries() { return DEMO_MODE ? localDB.entries : sbGet('entries?order=date.desc'); }
+async function insertEmployee(emp) { if(DEMO_MODE){localDB.employees.push(emp);saveLocal();return emp;} const r=await sbPost('employees',emp);return Array.isArray(r)?r[0]:r; }
+async function deleteEmployee(id)  { if(DEMO_MODE){localDB.employees=localDB.employees.filter(e=>e.id!==id);saveLocal();return;} await sbDelete('employees',id); }
+async function insertProject(p)    { if(DEMO_MODE){localDB.projects.push(p);saveLocal();return p;} const r=await sbPost('projects',p);return Array.isArray(r)?r[0]:r; }
+async function insertEntry(e)      { if(DEMO_MODE){localDB.entries.push(e);saveLocal();return e;} const r=await sbPost('entries',e);return Array.isArray(r)?r[0]:r; }
+async function deleteEntry(id)     { if(DEMO_MODE){localDB.entries=localDB.entries.filter(e=>e.id!==id);saveLocal();return;} await sbDelete('entries',id); }
 
-// ── SETUP / CONFIG ────────────────────────────────────────────────────────────
+// ── SETUP ─────────────────────────────────────────────────────────────────────
 document.getElementById('sql-code').textContent = SQL_SCHEMA;
-function copySql() {
-  navigator.clipboard.writeText(SQL_SCHEMA).then(() => showToast('SQL copiado'));
-}
+function copySql() { navigator.clipboard.writeText(SQL_SCHEMA).then(()=>showToast('SQL copiado')); }
 function saveConfig() {
-  const url = document.getElementById('cfg-url').value.trim().replace(/\/$/, '');
+  const url = document.getElementById('cfg-url').value.trim().replace(/\/$/,'');
   const key = document.getElementById('cfg-key').value.trim();
-  if (!url || !key) { showToast('Completa URL y API Key'); return; }
-  localStorage.setItem('pwrwash_url', url);
-  localStorage.setItem('pwrwash_key', key);
-  SUPABASE_URL = url; SUPABASE_KEY = key; DEMO_MODE = false;
-  initApp();
+  if(!url||!key){showToast('Completa URL y API Key');return;}
+  if(!key.startsWith('eyJ')){showToast('⚠️ Usa la anon key que empieza con eyJ...');return;}
+  localStorage.setItem('pwrwash_url',url); localStorage.setItem('pwrwash_key',key);
+  SUPABASE_URL=url; SUPABASE_KEY=key; DEMO_MODE=false; initApp();
 }
-function useDemoMode() {
-  DEMO_MODE = true;
-  localStorage.setItem('pwrwash_demo', '1');
-  initApp();
-}
-function saveLocal() {
-  localStorage.setItem('pwrwash_local', JSON.stringify(localDB));
-}
+function useDemoMode() { DEMO_MODE=true; localStorage.setItem('pwrwash_demo','1'); initApp(); }
+function saveLocal()   { localStorage.setItem('pwrwash_local',JSON.stringify(localDB)); }
 
-// ── INIT ──────────────────────────────────────────────────────────────────────
+// ── BOOT ──────────────────────────────────────────────────────────────────────
 async function boot() {
-  // Pre-configured credentials
   const PRECONFIGURED_URL = 'https://gaookfkigzdhpmsxqimf.supabase.co';
-  const PRECONFIGURED_KEY = 'sb_publishable_P-ZlwTc-lHHEiwdoUyKN5w_nOgrbhuG';
+  // ⚠️  REEMPLAZA con tu anon key (eyJ...) desde Supabase → Settings → API
+  const PRECONFIGURED_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdhb29rZmtpZ3pkaHBtc3hxaW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNDI3OTcsImV4cCI6MjA5MzgxODc5N30.RM8tIud9M8qtnqkRmLlIYv8vlPSfMdXhMOfa3vKFCrc';
 
   const savedUrl = localStorage.getItem('pwrwash_url') || PRECONFIGURED_URL;
   const savedKey = localStorage.getItem('pwrwash_key') || PRECONFIGURED_KEY;
   const demo     = localStorage.getItem('pwrwash_demo');
 
-  if (demo) {
-    DEMO_MODE = true;
-    const saved = localStorage.getItem('pwrwash_local');
-    if (saved) localDB = JSON.parse(saved);
-    else await seedDemoData();
-    showApp();
-    nav('dashboard');
+  if(demo){
+    DEMO_MODE=true;
+    const saved=localStorage.getItem('pwrwash_local');
+    if(saved) localDB=JSON.parse(saved); else await seedDemoData();
+    showApp(); nav('dashboard'); return;
+  }
+
+  // If key is still the placeholder, show setup screen
+  if(savedKey==='PASTE_YOUR_ANON_KEY_HERE'||!savedKey.startsWith('eyJ')){
+    document.getElementById('setup-screen').style.display='block';
+    document.getElementById('app').style.display='none';
     return;
   }
-  SUPABASE_URL = savedUrl;
-  SUPABASE_KEY = savedKey;
-  localStorage.setItem('pwrwash_url', savedUrl);
-  localStorage.setItem('pwrwash_key', savedKey);
-  showApp();
-  nav('dashboard');
+
+  SUPABASE_URL=savedUrl; SUPABASE_KEY=savedKey;
+  localStorage.setItem('pwrwash_url',savedUrl); localStorage.setItem('pwrwash_key',savedKey);
+  showApp(); nav('dashboard');
 }
 
 async function initApp() {
-  if (DEMO_MODE) {
-    const saved = localStorage.getItem('pwrwash_local');
-    if (!saved) await seedDemoData();
-    else localDB = JSON.parse(saved);
-  }
-  showApp();
-  nav('dashboard');
+  if(DEMO_MODE){ const saved=localStorage.getItem('pwrwash_local'); if(!saved) await seedDemoData(); else localDB=JSON.parse(saved); }
+  showApp(); nav('dashboard');
 }
+function showApp() { document.getElementById('setup-screen').style.display='none'; document.getElementById('app').style.display='block'; }
 
-function showApp() {
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-}
-
-// ── SEED DEMO DATA ─────────────────────────────────────────────────────────────
+// ── SEED ──────────────────────────────────────────────────────────────────────
 async function seedDemoData() {
-  const employees = [
+  const employees=[
     {id:'vega',name:'Vega',rate:125},{id:'milton',name:'Milton',rate:112},
     {id:'sanchez',name:'Sanchez',rate:112},{id:'betan',name:'Betan',rate:112},
     {id:'calde',name:'Calde',rate:100},{id:'jeffrey',name:'Jeffrey',rate:150},
@@ -506,14 +395,14 @@ async function seedDemoData() {
     {id:'franco',name:'Franco',rate:112},{id:'diego',name:'Diego',rate:112},
     {id:'yeyo',name:'Yeyo',rate:112},
   ];
-  const projects = [
+  const projects=[
     {id:'p1',name:'The Greens',type:'Lavado de tejas',factura:28000,month:3,status:'active',otros:[{desc:'Mangas',amt:1900},{desc:'Clorox',amt:300},{desc:'Sogas',amt:200},{desc:'Máquina de presión',amt:1200},{desc:'Seguro',amt:1120}]},
     {id:'p2',name:'El Dorado',type:'Lavado de aceras y cortinas',factura:8485,month:3,status:'active',otros:[{desc:'Seguro',amt:339.40},{desc:'Clorox',amt:300},{desc:'Peajes',amt:50}]},
     {id:'p3',name:'El Choli',type:'Limpieza',factura:37910,month:3,status:'completed',otros:[{desc:'Seguro',amt:1516.40},{desc:'Jabón (Dawn)',amt:50},{desc:'Máquina de presión',amt:2800},{desc:'Pulidora',amt:450}]},
     {id:'p4',name:'Urb. Los Paseos',type:'Limpieza',factura:22000,month:4,status:'active',otros:[]},
   ];
-  const mk = (pid,date,nom,gas,note='') => ({id:'e'+uid(),project_id:pid,date,nomina:nom.map(([n,r])=>({name:n,rate:r})),gas,otros:0,note});
-  const entries = [
+  const mk=(pid,date,nom,gas,note='')=>({id:'e'+uid(),project_id:pid,date,nomina:nom.map(([n,r])=>({name:n,rate:r})),gas,otros:0,note});
+  const entries=[
     mk('p1','2026-03-03',[['Jay',15300],['Milton',112]],0),
     mk('p1','2026-03-04',[['Vega',125],['Sanchez',112]],80),
     mk('p1','2026-03-05',[['Milton',112],['Sanchez',112],['Vega',125]],80),
@@ -553,59 +442,52 @@ async function seedDemoData() {
     mk('p4','2026-04-14',[],100),mk('p4','2026-04-15',[],100),
     mk('p4','2026-04-16',[],100),mk('p4','2026-04-17',[],100),
   ];
-  localDB = {employees, projects, entries, nextId:500};
+  localDB={employees,projects,entries,nextId:500};
   saveLocal();
 }
 
-// ── NAVIGATION ─────────────────────────────────────────────────────────────────
-let currentView = 'dashboard';
-let selectedProjId = null;
-
-function nav(v) {
-  currentView = v;
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+let currentView='dashboard', selectedProjId=null;
+function nav(v){
+  currentView=v;
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.nav-btn')[['dashboard','register','history','months'].indexOf(v)].classList.add('active');
   renderView(v);
 }
-function renderView(v) {
-  if (v==='dashboard') renderDashboard();
-  else if (v==='register') renderRegister();
-  else if (v==='history') renderHistory();
-  else if (v==='months') renderMonths();
-}
-function handleTopBtn() { if (currentView==='dashboard') openModal('m-project'); }
+function renderView(v){ if(v==='dashboard')renderDashboard();else if(v==='register')renderRegister();else if(v==='history')renderHistory();else if(v==='months')renderMonths(); }
+function handleTopBtn(){ if(currentView==='dashboard')openModal('m-project'); }
 
-// ── CALC ───────────────────────────────────────────────────────────────────────
-function calcProj(proj, entries) {
-  const pe = entries.filter(e=>e.project_id===proj.id);
-  let nom=0, gas=0;
+// ── CALC ──────────────────────────────────────────────────────────────────────
+function calcProj(proj,entries){
+  const pe=entries.filter(e=>e.project_id===proj.id);
+  let nom=0,gas=0;
   pe.forEach(e=>{ (e.nomina||[]).forEach(n=>nom+=n.rate); gas+=e.gas||0; });
-  const otros = (proj.otros||[]).reduce((s,o)=>s+o.amt,0);
-  const exp = nom+gas+otros;
-  const net = proj.factura - exp;
-  const margin = proj.factura>0 ? net/proj.factura : 0;
-  return {nom, gas, otros, exp, net, margin, days: pe.length};
+  const otros=(proj.otros||[]).reduce((s,o)=>s+o.amt,0);
+  const exp=nom+gas+otros;
+  const net=proj.factura-exp;
+  const margin=proj.factura>0?net/proj.factura:0;
+  return{nom,gas,otros,exp,net,margin,days:pe.length};
 }
 
-// ── DASHBOARD ──────────────────────────────────────────────────────────────────
-async function renderDashboard() {
-  const el = document.getElementById('view-dashboard');
-  el.innerHTML = '<div class="spinner"></div>';
-  document.getElementById('tb-title').textContent = 'PWR Wash';
-  document.getElementById('tb-sub').textContent = new Date().getFullYear();
-  document.getElementById('tb-btn').textContent = '+';
-  document.getElementById('tb-btn').onclick = ()=>openModal('m-project');
-  try {
-    const [projs, entries] = await Promise.all([getProjects(), getAllEntries()]);
-    const calcs = projs.map(p=>({p, c:calcProj(p,entries)}));
-    const tFac = calcs.reduce((s,x)=>s+x.p.factura,0);
-    const tNet = calcs.reduce((s,x)=>s+x.c.net,0);
-    const avg  = tFac>0 ? tNet/tFac : 0;
-    const alerts = calcs.filter(x=>x.c.margin<.2&&x.c.days>0)
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+async function renderDashboard(){
+  const el=document.getElementById('view-dashboard');
+  el.innerHTML='<div class="spinner"></div>';
+  document.getElementById('tb-title').textContent='PWR Wash';
+  document.getElementById('tb-sub').textContent=new Date().getFullYear();
+  document.getElementById('tb-btn').textContent='+';
+  document.getElementById('tb-btn').onclick=()=>openModal('m-project');
+  try{
+    const [projs,entries]=await Promise.all([getProjects(),getAllEntries()]);
+    const calcs=projs.map(p=>({p,c:calcProj(p,entries)}));
+    const tFac=calcs.reduce((s,x)=>s+x.p.factura,0);
+    const tNet=calcs.reduce((s,x)=>s+x.c.net,0);
+    const avg=tFac>0?tNet/tFac:0;
+    const alerts=calcs.filter(x=>x.c.margin<.2&&x.c.days>0)
       .map(x=>`<div class="alert alert-amber">Margen bajo en <b>${x.p.name}</b>: ${fmtP(x.c.margin)}</div>`).join('');
-    const cards = calcs.map(({p,c})=>`
+    const cards=calcs.map(({p,c})=>`
       <div class="proj-card" onclick="openProj('${p.id}')">
         <div class="proj-top">
           <div><div class="proj-name">${p.name}</div><div class="proj-type">${p.type} · ${c.days} días</div></div>
@@ -613,9 +495,8 @@ async function renderDashboard() {
         </div>
         <div class="prog-bg"><div class="prog-fill" style="width:${Math.min(Math.max(c.margin,0),1)*100}%;background:${barClr(c.margin)}"></div></div>
         <div class="proj-nums"><span>Rev: ${fmtK(p.factura)}</span><span>Net: ${fmtK(c.net)}</span></div>
-      </div>`).join('') || '<div class="empty"><div class="empty-icon">📋</div>Sin proyectos aún</div>';
-
-    el.innerHTML = `
+      </div>`).join('')||'<div class="empty"><div class="empty-icon">📋</div>Sin proyectos aún</div>';
+    el.innerHTML=`
       <div class="kpi-grid">
         <div class="kpi"><div class="kpi-label">Facturado</div><div class="kpi-val c-blue">${fmtK(tFac)}</div></div>
         <div class="kpi"><div class="kpi-label">Neto</div><div class="kpi-val ${avg>=.4?'c-green':avg>=.2?'c-amber':'c-red'}">${fmtK(tNet)}</div></div>
@@ -625,125 +506,448 @@ async function renderDashboard() {
       <div class="sec">Proyectos (${projs.length})</div>
       ${cards}
       <button class="add-btn" onclick="openModal('m-project')" style="margin-top:4px">+ Nuevo proyecto</button>
-      <div style="margin-top:12px;text-align:right">
+      <div class="div"></div>
+      <button class="export-btn" id="export-btn" onclick="exportExcel()">
+        📊 Exportar Reporte Excel
+      </button>
+      <div style="margin-top:4px;text-align:right">
         <button class="ghost-btn" onclick="openModal('m-employees');renderEmpEdit()">Gestionar empleados →</button>
       </div>
       ${DEMO_MODE?'<div class="alert alert-blue" style="margin-top:12px">Modo demo — datos guardados solo en este dispositivo</div>':''}`;
-  } catch(e) {
-    el.innerHTML = `<div class="alert alert-red">Error cargando datos: ${e.message}</div>`;
+  }catch(e){el.innerHTML=`<div class="alert alert-red">Error cargando datos: ${e.message}</div>`;}
+}
+function openProj(id){ selectedProjId=id; nav('history'); }
+
+// ══ EXCEL EXPORT ══════════════════════════════════════════════════════════════
+async function exportExcel(){
+  const btn=document.getElementById('export-btn');
+  if(!btn||btn.classList.contains('loading'))return;
+  btn.classList.add('loading');
+  btn.textContent='⏳ Generando...';
+  try{
+    const [projs,allEntries]=await Promise.all([getProjects(),getAllEntries()]);
+    const calcs=projs.map(p=>{
+      const c=calcProj(p,allEntries);
+      const pe=allEntries.filter(e=>e.project_id===p.id);
+      return{p,c,entries:pe};
+    });
+
+    // Group by month
+    const byMonth={};
+    MES.forEach(m=>{ byMonth[m]={projects:[],factura:0,gastos:0,neto:0}; });
+    calcs.forEach(({p,c})=>{
+      const mName=MES[(p.month||1)-1];
+      byMonth[mName].projects.push({p,c});
+      byMonth[mName].factura+=p.factura;
+      byMonth[mName].gastos+=c.exp;
+      byMonth[mName].neto+=c.net;
+    });
+    const activeMonths=MES.filter(m=>byMonth[m].projects.length>0);
+
+    const wb=XLSX.utils.book_new();
+
+    // ── STYLES helpers ──────────────────────────────────────────────────────
+    const S={
+      // Header row
+      hdr:(bg='1B4F8A',color='FFFFFF')=>({font:{name:'Arial',bold:true,sz:11,color:{rgb:color}},fill:{fgColor:{rgb:bg}},alignment:{horizontal:'center',vertical:'center'},border:thinBorder()}),
+      hdrL:(bg='1B4F8A',color='FFFFFF')=>({font:{name:'Arial',bold:true,sz:11,color:{rgb:color}},fill:{fgColor:{rgb:bg}},alignment:{horizontal:'left',vertical:'center'},border:thinBorder()}),
+      // Data cells
+      data:(bold=false,color='2C2C2A',ha='left')=>({font:{name:'Arial',bold,sz:10,color:{rgb:color}},alignment:{horizontal:ha,vertical:'center'},border:bottomBorder()}),
+      money:(bold=false,color='2C2C2A')=>({font:{name:'Arial',bold,sz:10,color:{rgb:color}},numFmt:'$#,##0;($#,##0);"-"',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()}),
+      pct:(bold=false,color='2C2C2A')=>({font:{name:'Arial',bold,sz:10,color:{rgb:color}},numFmt:'0.0%;(0.0%);"-"',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()}),
+      // KPI / title
+      title:(sz=14)=>({font:{name:'Arial',bold:true,sz,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'0D3566'}},alignment:{horizontal:'left',vertical:'center'}}),
+      kpiLbl:()=>({font:{name:'Arial',bold:true,sz:8,color:{rgb:'888780'}},fill:{fgColor:{rgb:'F8F8F8'}},alignment:{horizontal:'left',vertical:'center'}}),
+      kpiVal:(color='1B4F8A')=>({font:{name:'Arial',bold:true,sz:16,color:{rgb:color}},fill:{fgColor:{rgb:'F8F8F8'}},alignment:{horizontal:'left',vertical:'center'},numFmt:'$#,##0'}),
+      kpiPct:(color='854F0B')=>({font:{name:'Arial',bold:true,sz:16,color:{rgb:color}},fill:{fgColor:{rgb:'F8F8F8'}},alignment:{horizontal:'left',vertical:'center'},numFmt:'0.0%'}),
+      // Total row
+      tot:()=>({font:{name:'Arial',bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1B4F8A'}},alignment:{horizontal:'right',vertical:'center'},border:thinBorder(),numFmt:'$#,##0'}),
+      totL:()=>({font:{name:'Arial',bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1B4F8A'}},alignment:{horizontal:'left',vertical:'center'},border:thinBorder()}),
+      totP:()=>({font:{name:'Arial',bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1B4F8A'}},alignment:{horizontal:'right',vertical:'center'},border:thinBorder(),numFmt:'0.0%'}),
+      // Margin colored
+      netGreen:()=>({font:{name:'Arial',bold:true,sz:10,color:{rgb:'1E6B3C'}},fill:{fgColor:{rgb:'EAF3DE'}},numFmt:'$#,##0',alignment:{horizontal:'right',vertical:'center'},border:thinBorder()}),
+      netAmber:()=>({font:{name:'Arial',bold:true,sz:10,color:{rgb:'854F0B'}},fill:{fgColor:{rgb:'FAEEDA'}},numFmt:'$#,##0',alignment:{horizontal:'right',vertical:'center'},border:thinBorder()}),
+      netRed:  ()=>({font:{name:'Arial',bold:true,sz:10,color:{rgb:'A32D2D'}},fill:{fgColor:{rgb:'FCEBEB'}},numFmt:'$#,##0',alignment:{horizontal:'right',vertical:'center'},border:thinBorder()}),
+      pctGreen:()=>({font:{name:'Arial',bold:true,sz:10,color:{rgb:'1E6B3C'}},fill:{fgColor:{rgb:'EAF3DE'}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:thinBorder()}),
+      pctAmber:()=>({font:{name:'Arial',bold:true,sz:10,color:{rgb:'854F0B'}},fill:{fgColor:{rgb:'FAEEDA'}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:thinBorder()}),
+      pctRed:  ()=>({font:{name:'Arial',bold:true,sz:10,color:{rgb:'A32D2D'}},fill:{fgColor:{rgb:'FCEBEB'}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:thinBorder()}),
+    };
+    function marginNetStyle(m){ return m>=.4?S.netGreen():m>=.2?S.netAmber():S.netRed(); }
+    function marginPctStyle(m){ return m>=.4?S.pctGreen():m>=.2?S.pctAmber():S.pctRed(); }
+    function thinBorder(){ const s={style:'thin',color:{rgb:'D0D8E0'}}; return{top:s,bottom:s,left:s,right:s}; }
+    function bottomBorder(){ return{bottom:{style:'thin',color:{rgb:'E0E0E0'}}}; }
+    function sc(ws,ref,v,s){ XLSX.utils.sheet_add_aoa(ws,[[v]],{origin:ref}); if(s)ws[ref].s=s; }
+    function colChar(n){ return String.fromCharCode(65+n); }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SHEET 1 — RESUMEN
+    // ═══════════════════════════════════════════════════════════════════════
+    const ws1Data=[];
+    const ws1=XLSX.utils.aoa_to_sheet(ws1Data);
+    ws1['!cols']=[{wch:3},{wch:28},{wch:18},{wch:14},{wch:14},{wch:14},{wch:14},{wch:13},{wch:3}];
+
+    let r=0;
+    // Title
+    sc(ws1,`B${r+1}`,'PWR WASH LLC  —  Reporte Mensual de Rentabilidad',S.title(15));
+    ws1['!merges']=[{s:{r,c:1},e:{r,c:7}}];
+    ws1['!rows']=[{hpt:6},{hpt:40}];
+    r+=2;
+
+    // KPI labels
+    sc(ws1,`B${r+1}`,'TOTAL FACTURADO',S.kpiLbl());
+    sc(ws1,`D${r+1}`,'INGRESO NETO',S.kpiLbl());
+    sc(ws1,`F${r+1}`,'MARGEN PROMEDIO',S.kpiLbl());
+    sc(ws1,`H${r+1}`,'PROYECTOS',S.kpiLbl());
+    ws1['!merges'].push(
+      {s:{r,c:1},e:{r,c:2}},{s:{r,c:3},e:{r,c:4}},
+      {s:{r,c:5},e:{r,c:6}}
+    );
+    r++;
+
+    // KPI values
+    const tFac=calcs.reduce((s,x)=>s+x.p.factura,0);
+    const tNet=calcs.reduce((s,x)=>s+x.c.net,0);
+    const tMar=tFac>0?tNet/tFac:0;
+    sc(ws1,`B${r+1}`,tFac,S.kpiVal('1B4F8A'));
+    sc(ws1,`D${r+1}`,tNet,S.kpiVal(tNet>=0?'1E6B3C':'A32D2D'));
+    sc(ws1,`F${r+1}`,tMar,S.kpiPct(tMar>=.4?'1E6B3C':tMar>=.2?'854F0B':'A32D2D'));
+    sc(ws1,`H${r+1}`,projs.length,{font:{name:'Arial',bold:true,sz:16,color:{rgb:'2C2C2A'}},fill:{fgColor:{rgb:'F8F8F8'}},alignment:{horizontal:'left',vertical:'center'}});
+    ws1['!merges'].push({s:{r,c:1},e:{r,c:2}},{s:{r,c:3},e:{r,c:4}},{s:{r,c:5},e:{r,c:6}});
+    r+=2;
+
+    // Table headers
+    const heads=['Proyecto','Tipo','Factura ($)','Nómina ($)','Gastos Otros ($)','Total Gastos ($)','Ingreso Neto ($)','Margen'];
+    const hcols=['B','C','D','E','F','G','H','I'];
+    // reuse cols B–I (index 1–8)
+    heads.forEach((h,i)=>{
+      const col=colChar(1+i);
+      sc(ws1,`${col}${r+1}`,h,i===0?S.hdrL():S.hdr());
+    });
+    // fix col I width
+    ws1['!cols'].push({wch:10});
+    r++;
+
+    calcs.forEach(({p,c},i)=>{
+      const bg=i%2===0?'FFFFFF':'F7FAFD';
+      const baseS={font:{name:'Arial',sz:10},fill:{fgColor:{rgb:bg}},border:bottomBorder()};
+      const mkS=(bold,color,ha,numFmt)=>{
+        const s=JSON.parse(JSON.stringify(baseS));
+        s.font.bold=bold; s.font.color={rgb:color};
+        s.alignment={horizontal:ha,vertical:'center'};
+        if(numFmt)s.numFmt=numFmt;
+        return s;
+      };
+      const netS=c.margin>=.4?'1E6B3C':c.margin>=.2?'854F0B':'A32D2D';
+      sc(ws1,`B${r+1}`,p.name,mkS(true,'2C2C2A','left'));
+      sc(ws1,`C${r+1}`,p.type,mkS(false,'666666','left'));
+      sc(ws1,`D${r+1}`,p.factura,mkS(false,'1B4F8A','right','$#,##0'));
+      sc(ws1,`E${r+1}`,c.nom,mkS(false,'2C2C2A','right','$#,##0'));
+      sc(ws1,`F${r+1}`,c.gas+c.otros,mkS(false,'2C2C2A','right','$#,##0'));
+      sc(ws1,`G${r+1}`,c.exp,mkS(false,'2C2C2A','right','$#,##0'));
+      sc(ws1,`H${r+1}`,c.net,{...marginNetStyle(c.margin),fill:{fgColor:{rgb:bg}}});
+      sc(ws1,`I${r+1}`,c.margin,{...marginPctStyle(c.margin),fill:{fgColor:{rgb:bg}}});
+      r++;
+    });
+
+    // Total row
+    sc(ws1,`B${r+1}`,'TOTAL',S.totL());
+    sc(ws1,`C${r+1}`,'',S.totL());
+    sc(ws1,`D${r+1}`,tFac,S.tot());
+    sc(ws1,`E${r+1}`,calcs.reduce((s,x)=>s+x.c.nom,0),S.tot());
+    sc(ws1,`F${r+1}`,calcs.reduce((s,x)=>s+x.c.gas+x.c.otros,0),S.tot());
+    sc(ws1,`G${r+1}`,calcs.reduce((s,x)=>s+x.c.exp,0),S.tot());
+    sc(ws1,`H${r+1}`,tNet,S.tot());
+    sc(ws1,`I${r+1}`,tMar,S.totP());
+    r+=2;
+
+    // Desglose gastos
+    sc(ws1,`B${r+1}`,'Desglose de gastos por proyecto',{font:{name:'Arial',bold:true,sz:10,color:{rgb:'1B4F8A'}},alignment:{horizontal:'left'}});
+    ws1['!merges'].push({s:{r,c:1},e:{r,c:8}});
+    r++;
+    ['Proyecto','Nómina','Gasolina','Materiales/Otros','Total Gastos','% Factura'].forEach((h,i)=>{
+      sc(ws1,`${colChar(1+i)}${r+1}`,h,S.hdr('2C5282'));
+    });
+    r++;
+    calcs.forEach(({p,c},i)=>{
+      const bg=i%2===0?'FFFFFF':'F5F8FC';
+      const mkD=(v,fmt,ha,bold=false,color='2C2C2A')=>{
+        const s={font:{name:'Arial',sz:10,bold,color:{rgb:color}},fill:{fgColor:{rgb:bg}},alignment:{horizontal:ha,vertical:'center'},border:bottomBorder()};
+        if(fmt)s.numFmt=fmt;
+        return s;
+      };
+      sc(ws1,`B${r+1}`,p.name,mkD(null,null,'left',true));
+      sc(ws1,`C${r+1}`,c.nom,mkD('$#,##0','$#,##0','right'));
+      sc(ws1,`D${r+1}`,c.gas,mkD('$#,##0','$#,##0','right'));
+      sc(ws1,`E${r+1}`,c.otros,mkD('$#,##0','$#,##0','right'));
+      sc(ws1,`F${r+1}`,c.exp,mkD('$#,##0','$#,##0','right'));
+      sc(ws1,`G${r+1}`,c.exp/p.factura,mkD('0.0%','0.0%','right'));
+      r++;
+    });
+    r++;
+    sc(ws1,`B${r+1}`,'PWR WASH LLC · Puerto Rico · Reporte generado automáticamente',
+      {font:{name:'Arial',sz:9,italic:true,color:{rgb:'AAAAAA'}},alignment:{horizontal:'center'}});
+    ws1['!merges'].push({s:{r,c:1},e:{r,c:8}});
+
+    XLSX.utils.book_append_sheet(wb,ws1,'Resumen');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SHEET 2 — COMPARACIÓN MES A MES
+    // ═══════════════════════════════════════════════════════════════════════
+    const ws2=XLSX.utils.aoa_to_sheet([]);
+    ws2['!cols']=[{wch:3},{wch:18},{wch:14},{wch:14},{wch:14},{wch:12},{wch:14},{wch:14},{wch:3}];
+    ws2['!merges']=[];
+    let r2=0;
+
+    sc(ws2,`B${r2+1}`,'PWR WASH LLC  —  Comparación Mes a Mes 2026',S.title(14));
+    ws2['!merges'].push({s:{r2,c:1},e:{r2,c:7}});
+    r2+=2;
+
+    // Column headers
+    ['Mes','Facturado','Gastos','Ingreso Neto','Margen %','vs Mes Anterior','Δ Neto'].forEach((h,i)=>{
+      sc(ws2,`${colChar(1+i)}${r2+1}`,h,i===0?S.hdrL():S.hdr());
+    });
+    r2++;
+
+    let prevNeto=null, prevFac=null;
+    activeMonths.forEach((mName,idx)=>{
+      const md=byMonth[mName];
+      const fac=md.factura, gas=md.gastos, net=md.neto;
+      const mar=fac>0?net/fac:0;
+
+      // Delta vs previous month
+      let deltaNet=null, deltaPct=null;
+      if(prevNeto!==null){
+        deltaNet=net-prevNeto;
+        deltaPct=prevFac>0?(fac-prevFac)/prevFac:null;
+      }
+
+      const netStyle=marginNetStyle(mar);
+      const pctStyle=marginPctStyle(mar);
+      const bg=idx%2===0?'FFFFFF':'F7FAFD';
+      const mkD=(bold,color,ha,numFmt)=>{
+        const s={font:{name:'Arial',sz:11,bold,color:{rgb:color}},fill:{fgColor:{rgb:bg}},alignment:{horizontal:ha,vertical:'center'},border:bottomBorder()};
+        if(numFmt)s.numFmt=numFmt;
+        return s;
+      };
+
+      sc(ws2,`B${r2+1}`,mName,mkD(true,'2C2C2A','left'));
+      sc(ws2,`C${r2+1}`,fac,mkD(false,'1B4F8A','right','$#,##0'));
+      sc(ws2,`D${r2+1}`,gas,mkD(false,'444444','right','$#,##0'));
+      sc(ws2,`E${r2+1}`,net,{...netStyle,fill:{fgColor:{rgb:bg}}});
+      sc(ws2,`F${r2+1}`,mar,{...pctStyle,fill:{fgColor:{rgb:bg}}});
+
+      // vs Mes Anterior — % change in revenue
+      if(deltaPct!==null){
+        const dColor=deltaPct>=0?'1E6B3C':'A32D2D';
+        const prefix=deltaPct>=0?'▲ ':'▼ ';
+        const dStyle={font:{name:'Arial',sz:10,bold:true,color:{rgb:dColor}},fill:{fgColor:{rgb:bg}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()};
+        sc(ws2,`G${r2+1}`,Math.abs(deltaPct),dStyle);
+      } else {
+        sc(ws2,`G${r2+1}`,'—',mkD(false,'AAAAAA','right'));
+      }
+
+      // Δ Neto absoluto
+      if(deltaNet!==null){
+        const dColor=deltaNet>=0?'1E6B3C':'A32D2D';
+        const dStyle={font:{name:'Arial',sz:10,bold:true,color:{rgb:dColor}},fill:{fgColor:{rgb:bg}},numFmt:'$#,##0;($#,##0)',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()};
+        sc(ws2,`H${r2+1}`,deltaNet,dStyle);
+      } else {
+        sc(ws2,`H${r2+1}`,'—',mkD(false,'AAAAAA','right'));
+      }
+
+      r2++;
+
+      // Sub-rows per project
+      md.projects.forEach(({p,c})=>{
+        const sm=c.margin;
+        const sfg=sm>=.4?'1E6B3C':sm>=.2?'854F0B':'A32D2D';
+        const sRowBg='F5F8FC';
+        const mkSub=(v,fmt,ha,bold=false,color='888780')=>{
+          const s={font:{name:'Arial',sz:9,bold,color:{rgb:color}},fill:{fgColor:{rgb:sRowBg}},alignment:{horizontal:ha,vertical:'center'},border:bottomBorder()};
+          if(fmt)s.numFmt=fmt;
+          return s;
+        };
+        sc(ws2,`B${r2+1}`,`   · ${p.name}`,mkSub(null,null,'left',false,'666666'));
+        sc(ws2,`C${r2+1}`,p.factura,mkSub('$#,##0','$#,##0','right'));
+        sc(ws2,`D${r2+1}`,c.exp,mkSub('$#,##0','$#,##0','right'));
+        sc(ws2,`E${r2+1}`,c.net,mkSub('$#,##0','$#,##0','right',true,sfg));
+        sc(ws2,`F${r2+1}`,c.margin,mkSub('0.0%','0.0%','right',true,sfg));
+        sc(ws2,`G${r2+1}`,'',mkSub(null,null,'right'));
+        sc(ws2,`H${r2+1}`,'',mkSub(null,null,'right'));
+        r2++;
+      });
+
+      prevNeto=net; prevFac=fac;
+    });
+
+    // Totals
+    sc(ws2,`B${r2+1}`,'TOTAL 2026',S.totL());
+    sc(ws2,`C${r2+1}`,tFac,S.tot());
+    sc(ws2,`D${r2+1}`,calcs.reduce((s,x)=>s+x.c.exp,0),S.tot());
+    sc(ws2,`E${r2+1}`,tNet,S.tot());
+    sc(ws2,`F${r2+1}`,tMar,S.totP());
+    sc(ws2,`G${r2+1}`,'',S.totL());
+    sc(ws2,`H${r2+1}`,'',S.totL());
+
+    XLSX.utils.book_append_sheet(wb,ws2,'Comparación Mes a Mes');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SHEET 3 — DETALLE POR PROYECTO
+    // ═══════════════════════════════════════════════════════════════════════
+    const ws3=XLSX.utils.aoa_to_sheet([]);
+    ws3['!cols']=[{wch:3},{wch:24},{wch:14},{wch:14},{wch:14},{wch:12},{wch:3}];
+    ws3['!merges']=[];
+    let r3=0;
+    sc(ws3,`B${r3+1}`,'PWR WASH LLC  —  Detalle por Proyecto',S.title(14));
+    ws3['!merges'].push({s:{r:r3,c:1},e:{r:r3,c:5}});
+    r3+=2;
+
+    calcs.forEach(({p,c,entries:pe})=>{
+      // Project title
+      sc(ws3,`B${r3+1}`,`${p.name}  ·  ${p.type}  ·  ${MES[(p.month||1)-1]} 2026`,S.hdrL('1B4F8A'));
+      ws3['!merges'].push({s:{r:r3,c:1},e:{r:r3,c:5}});
+      r3++;
+
+      // Sub headers
+      ['Concepto','Monto ($)','% Factura','',''].forEach((h,i)=>{
+        sc(ws3,`${colChar(1+i)}${r3+1}`,h,i===0?S.hdrL('3A6EA5'):S.hdr('3A6EA5'));
+      });
+      r3++;
+
+      const mkRow=(label,amt,bold,color,numFmt='$#,##0')=>{
+        const bg='FFFFFF';
+        sc(ws3,`B${r3+1}`,label,{font:{name:'Arial',sz:10,bold,color:{rgb:color}},fill:{fgColor:{rgb:bg}},alignment:{horizontal:'left',vertical:'center'},border:bottomBorder()});
+        sc(ws3,`C${r3+1}`,amt,{font:{name:'Arial',sz:10,bold,color:{rgb:color}},fill:{fgColor:{rgb:bg}},numFmt,alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()});
+        sc(ws3,`D${r3+1}`,p.factura>0?amt/p.factura:0,{font:{name:'Arial',sz:9,color:{rgb:'888780'}},fill:{fgColor:{rgb:bg}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()});
+        r3++;
+      };
+
+      mkRow('Factura total',p.factura,true,'1B4F8A');
+      mkRow('— Nómina empleados',c.nom,false,'444444');
+      mkRow('— Gasolina',c.gas,false,'444444');
+      (p.otros||[]).forEach(o=>mkRow(`  · ${o.desc}`,o.amt,false,'888780'));
+
+      // Total gastos
+      sc(ws3,`B${r3+1}`,'Total gastos',{font:{name:'Arial',sz:10,bold:true,color:{rgb:'A32D2D'}},fill:{fgColor:{rgb:'FCEBEB'}},alignment:{horizontal:'left',vertical:'center'},border:bottomBorder()});
+      sc(ws3,`C${r3+1}`,c.exp,{font:{name:'Arial',sz:10,bold:true,color:{rgb:'A32D2D'}},fill:{fgColor:{rgb:'FCEBEB'}},numFmt:'$#,##0',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()});
+      sc(ws3,`D${r3+1}`,p.factura>0?c.exp/p.factura:0,{font:{name:'Arial',sz:9,color:{rgb:'A32D2D'}},fill:{fgColor:{rgb:'FCEBEB'}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:bottomBorder()});
+      r3++;
+
+      // Ingreso neto
+      const netBg=c.margin>=.4?'EAF3DE':c.margin>=.2?'FAEEDA':'FCEBEB';
+      const netFg=c.margin>=.4?'1E6B3C':c.margin>=.2?'854F0B':'A32D2D';
+      sc(ws3,`B${r3+1}`,'INGRESO NETO',{font:{name:'Arial',sz:11,bold:true,color:{rgb:netFg}},fill:{fgColor:{rgb:netBg}},alignment:{horizontal:'left',vertical:'center'},border:{top:{style:'thin',color:{rgb:'D0D8E0'}},bottom:{style:'thin',color:{rgb:'D0D8E0'}}}});
+      sc(ws3,`C${r3+1}`,c.net,{font:{name:'Arial',sz:12,bold:true,color:{rgb:netFg}},fill:{fgColor:{rgb:netBg}},numFmt:'$#,##0',alignment:{horizontal:'right',vertical:'center'},border:{top:{style:'thin',color:{rgb:'D0D8E0'}},bottom:{style:'thin',color:{rgb:'D0D8E0'}}}});
+      sc(ws3,`D${r3+1}`,c.margin,{font:{name:'Arial',sz:11,bold:true,color:{rgb:netFg}},fill:{fgColor:{rgb:netBg}},numFmt:'0.0%',alignment:{horizontal:'right',vertical:'center'},border:{top:{style:'thin',color:{rgb:'D0D8E0'}},bottom:{style:'thin',color:{rgb:'D0D8E0'}}}});
+      r3+=3;
+    });
+
+    XLSX.utils.book_append_sheet(wb,ws3,'Detalle Proyectos');
+
+    // ── DOWNLOAD ────────────────────────────────────────────────────────────
+    const now=new Date();
+    const stamp=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    XLSX.writeFile(wb,`PWR_Wash_Reporte_${stamp}.xlsx`,{bookType:'xlsx',type:'binary',cellStyles:true});
+    showToast('✅ Excel descargado correctamente');
+  }catch(err){
+    showToast('Error al exportar: '+err.message);
+    console.error(err);
+  }finally{
+    if(btn){ btn.classList.remove('loading'); btn.textContent='📊 Exportar Reporte Excel'; }
   }
 }
 
-function openProj(id) { selectedProjId = id; nav('history'); }
-
-// ── REGISTER ───────────────────────────────────────────────────────────────────
-async function renderRegister(preselect) {
-  const el = document.getElementById('view-register');
-  el.innerHTML = '<div class="spinner"></div>';
-  document.getElementById('tb-title').textContent = 'Registrar día';
-  document.getElementById('tb-sub').textContent = 'Nuevo registro';
-  document.getElementById('tb-btn').textContent = '';
-  try {
-    const [emps, projs] = await Promise.all([getEmployees(), getProjects()]);
-    const selId = preselect || selectedProjId || projs[0]?.id || '';
-    const today = new Date().toISOString().split('T')[0];
-    const projOpts = projs.map(p=>`<option value="${p.id}"${p.id===selId?' selected':''}>${p.name}</option>`).join('');
-    const chips = emps.map(e=>`
-      <div class="chip" data-id="${e.id}" data-rate="${e.rate}" onclick="toggleChip(this)">
-        ${e.name}<span class="chip-rate">$${e.rate}</span>
-      </div>`).join('');
-    el.innerHTML = `
-      <div class="fg"><label class="fl">Proyecto</label>
-        <select class="fi" id="rg-proj">${projOpts}</select></div>
-      <div class="fg"><label class="fl">Fecha</label>
-        <input class="fi" id="rg-date" type="date" value="${today}"></div>
-      <div class="fg"><label class="fl">Empleados del día</label>
-        <div class="chip-grid" id="rg-chips">${chips}</div></div>
+// ── REGISTER ──────────────────────────────────────────────────────────────────
+async function renderRegister(preselect){
+  const el=document.getElementById('view-register');
+  el.innerHTML='<div class="spinner"></div>';
+  document.getElementById('tb-title').textContent='Registrar día';
+  document.getElementById('tb-sub').textContent='Nuevo registro';
+  document.getElementById('tb-btn').textContent='';
+  try{
+    const [emps,projs]=await Promise.all([getEmployees(),getProjects()]);
+    const selId=preselect||selectedProjId||projs[0]?.id||'';
+    const today=new Date().toISOString().split('T')[0];
+    const projOpts=projs.map(p=>`<option value="${p.id}"${p.id===selId?' selected':''}>${p.name}</option>`).join('');
+    const chips=emps.map(e=>`<div class="chip" data-id="${e.id}" data-rate="${e.rate}" onclick="toggleChip(this)">${e.name}<span class="chip-rate">$${e.rate}</span></div>`).join('');
+    el.innerHTML=`
+      <div class="fg"><label class="fl">Proyecto</label><select class="fi" id="rg-proj">${projOpts}</select></div>
+      <div class="fg"><label class="fl">Fecha</label><input class="fi" id="rg-date" type="date" value="${today}"></div>
+      <div class="fg"><label class="fl">Empleados del día</label><div class="chip-grid" id="rg-chips">${chips}</div></div>
       <div class="fr2" style="margin-bottom:13px">
-        <div><label class="fl">Gasolina ($)</label>
-          <input class="fi" id="rg-gas" type="number" placeholder="0" value="0" oninput="updatePreview()"></div>
-        <div><label class="fl">Otros gastos ($)</label>
-          <input class="fi" id="rg-otros" type="number" placeholder="0" value="0" oninput="updatePreview()"></div>
+        <div><label class="fl">Gasolina ($)</label><input class="fi" id="rg-gas" type="number" placeholder="0" value="0" oninput="updatePreview()"></div>
+        <div><label class="fl">Otros gastos ($)</label><input class="fi" id="rg-otros" type="number" placeholder="0" value="0" oninput="updatePreview()"></div>
       </div>
-      <div class="fg"><label class="fl">Nota (opcional)</label>
-        <input class="fi" id="rg-note" placeholder="Ej: día completo, lluvia..."></div>
+      <div class="fg"><label class="fl">Nota (opcional)</label><input class="fi" id="rg-note" placeholder="Ej: día completo, lluvia..."></div>
       <div class="cost-prev">Gasto del día: <span id="prev-val">$0</span></div>
       <button class="primary-btn" onclick="saveEntry()">Guardar día</button>`;
     updatePreview();
-  } catch(e) {
-    el.innerHTML = `<div class="alert alert-red">Error: ${e.message}</div>`;
-  }
+  }catch(e){el.innerHTML=`<div class="alert alert-red">Error: ${e.message}</div>`;}
 }
-
-function toggleChip(el) { el.classList.toggle('sel'); updatePreview(); }
-function updatePreview() {
-  const sel = document.querySelectorAll('#rg-chips .chip.sel');
+function toggleChip(el){ el.classList.toggle('sel'); updatePreview(); }
+function updatePreview(){
+  const sel=document.querySelectorAll('#rg-chips .chip.sel');
   let nom=0; sel.forEach(c=>nom+=parseFloat(c.dataset.rate));
-  const gas   = parseFloat(document.getElementById('rg-gas')?.value||0);
-  const otros = parseFloat(document.getElementById('rg-otros')?.value||0);
-  const pv = document.getElementById('prev-val');
-  if (pv) pv.textContent = fmt$(nom+gas+otros);
+  const gas=parseFloat(document.getElementById('rg-gas')?.value||0);
+  const otros=parseFloat(document.getElementById('rg-otros')?.value||0);
+  const pv=document.getElementById('prev-val');
+  if(pv) pv.textContent=fmt$(nom+gas+otros);
 }
-
-async function saveEntry() {
-  const projId = document.getElementById('rg-proj')?.value;
-  const date   = document.getElementById('rg-date')?.value;
-  const gas    = parseFloat(document.getElementById('rg-gas')?.value||0);
-  const otros  = parseFloat(document.getElementById('rg-otros')?.value||0);
-  const note   = document.getElementById('rg-note')?.value.trim()||'';
-  const sel    = document.querySelectorAll('#rg-chips .chip.sel');
-  const nomina = [];
-  sel.forEach(c=>nomina.push({name:c.childNodes[0].textContent.trim(), rate:parseFloat(c.dataset.rate)}));
-  if (!projId||!date) { showToast('Selecciona proyecto y fecha'); return; }
-  const btn = document.querySelector('#view-register .primary-btn');
-  if (btn) { btn.disabled=true; btn.textContent='Guardando...'; }
-  try {
-    const entry = {id:uid(), project_id:projId, date, nomina, gas, otros, note};
-    await insertEntry(entry);
-    const total = nomina.reduce((s,n)=>s+n.rate,0)+gas+otros;
-    showToast(`Guardado — ${fmt$(total)} registrados`);
+async function saveEntry(){
+  const projId=document.getElementById('rg-proj')?.value;
+  const date=document.getElementById('rg-date')?.value;
+  const gas=parseFloat(document.getElementById('rg-gas')?.value||0);
+  const otros=parseFloat(document.getElementById('rg-otros')?.value||0);
+  const note=document.getElementById('rg-note')?.value.trim()||'';
+  const sel=document.querySelectorAll('#rg-chips .chip.sel');
+  const nomina=[];
+  sel.forEach(c=>nomina.push({name:c.childNodes[0].textContent.trim(),rate:parseFloat(c.dataset.rate)}));
+  if(!projId||!date){showToast('Selecciona proyecto y fecha');return;}
+  const btn=document.querySelector('#view-register .primary-btn');
+  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+  try{
+    await insertEntry({id:uid(),project_id:projId,date,nomina,gas,otros,note});
+    showToast(`Guardado — ${fmt$(nomina.reduce((s,n)=>s+n.rate,0)+gas+otros)} registrados`);
     renderRegister(projId);
-  } catch(e) {
+  }catch(e){
     showToast('Error: '+e.message);
-    if (btn) { btn.disabled=false; btn.textContent='Guardar día'; }
+    if(btn){btn.disabled=false;btn.textContent='Guardar día';}
   }
 }
 
-// ── HISTORY ─────────────────────────────────────────────────────────────────
-async function renderHistory() {
-  const el = document.getElementById('view-history');
-  document.getElementById('tb-btn').textContent = '';
-  if (!selectedProjId) {
-    el.innerHTML = '<div class="spinner"></div>';
-    try {
-      const [projs, entries] = await Promise.all([getProjects(), getAllEntries()]);
-      const list = projs.map(p=>{
-        const c = calcProj(p,entries);
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+async function renderHistory(){
+  const el=document.getElementById('view-history');
+  document.getElementById('tb-btn').textContent='';
+  if(!selectedProjId){
+    el.innerHTML='<div class="spinner"></div>';
+    try{
+      const [projs,entries]=await Promise.all([getProjects(),getAllEntries()]);
+      const list=projs.map(p=>{
+        const c=calcProj(p,entries);
         return `<div class="proj-card" onclick="selectedProjId='${p.id}';renderHistory()">
-          <div class="proj-top">
-            <div><div class="proj-name">${p.name}</div><div class="proj-type">${p.type} · ${c.days} días</div></div>
-            <span class="badge ${badgeCls(c.margin)}">${fmtP(c.margin)}</span>
-          </div></div>`;
+          <div class="proj-top"><div><div class="proj-name">${p.name}</div><div class="proj-type">${p.type} · ${c.days} días</div></div>
+          <span class="badge ${badgeCls(c.margin)}">${fmtP(c.margin)}</span></div></div>`;
       }).join('');
-      el.innerHTML = `<div class="sec">Selecciona un proyecto</div>${list||'<div class="empty"><div class="empty-icon">📋</div>Sin proyectos</div>'}`;
-    } catch(e) { el.innerHTML=`<div class="alert alert-red">${e.message}</div>`; }
+      el.innerHTML=`<div class="sec">Selecciona un proyecto</div>${list||'<div class="empty"><div class="empty-icon">📋</div>Sin proyectos</div>'}`;
+    }catch(e){el.innerHTML=`<div class="alert alert-red">${e.message}</div>`;}
     return;
   }
-  el.innerHTML = '<div class="spinner"></div>';
-  try {
-    const [projs, entries] = await Promise.all([getProjects(), getEntries(selectedProjId)]);
-    const proj = projs.find(p=>p.id===selectedProjId);
-    if (!proj) { selectedProjId=null; renderHistory(); return; }
-    const c = calcProj(proj, entries.map(e=>({...e, project_id:e.project_id||selectedProjId})));
-    document.getElementById('tb-title').textContent = proj.name;
-    document.getElementById('tb-sub').textContent = `${c.days} días · ${fmtP(c.margin)} margen`;
-    const eRows = [...entries].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>{
-      const dayNom = (e.nomina||[]).reduce((s,n)=>s+n.rate,0);
-      const dayTot = dayNom+(e.gas||0)+(e.otros||0);
-      const ppl    = (e.nomina||[]).map(n=>n.name).join(', ')||'—';
-      const extras = [];
-      if (e.gas>0) extras.push(`Gas $${e.gas}`);
-      if (e.otros>0) extras.push(`Otros $${e.otros}`);
+  el.innerHTML='<div class="spinner"></div>';
+  try{
+    const [projs,entries]=await Promise.all([getProjects(),getEntries(selectedProjId)]);
+    const proj=projs.find(p=>p.id===selectedProjId);
+    if(!proj){selectedProjId=null;renderHistory();return;}
+    const c=calcProj(proj,entries.map(e=>({...e,project_id:e.project_id||selectedProjId})));
+    document.getElementById('tb-title').textContent=proj.name;
+    document.getElementById('tb-sub').textContent=`${c.days} días · ${fmtP(c.margin)} margen`;
+    const eRows=[...entries].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>{
+      const dayNom=(e.nomina||[]).reduce((s,n)=>s+n.rate,0);
+      const dayTot=dayNom+(e.gas||0)+(e.otros||0);
+      const ppl=(e.nomina||[]).map(n=>n.name).join(', ')||'—';
+      const extras=[];
+      if(e.gas>0)extras.push(`Gas $${e.gas}`);
+      if(e.otros>0)extras.push(`Otros $${e.otros}`);
       return `<div class="entry-row">
         <div>
           <div class="entry-day">${fmtDate(e.date)}</div>
@@ -754,10 +958,8 @@ async function renderHistory() {
         <div class="entry-amt">${fmt$(dayTot)}</div>
       </div>`;
     }).join('');
-    const otrosRows = (proj.otros||[]).map(o=>
-      `<div class="entry-row"><div class="entry-day">${o.desc}</div><div class="entry-amt">${fmt$(o.amt)}</div></div>`
-    ).join('');
-    el.innerHTML = `
+    const otrosRows=(proj.otros||[]).map(o=>`<div class="entry-row"><div class="entry-day">${o.desc}</div><div class="entry-amt">${fmt$(o.amt)}</div></div>`).join('');
+    el.innerHTML=`
       <button class="back-btn" onclick="selectedProjId=null;renderHistory()">← Todos los proyectos</button>
       <div class="card" style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
@@ -779,34 +981,33 @@ async function renderHistory() {
       </div>
       <div class="card card-sm">${eRows||'<div class="empty" style="padding:16px">Sin días registrados aún</div>'}</div>
       ${otrosRows?`<div class="sec" style="margin-top:14px">Gastos fijos del proyecto</div><div class="card card-sm">${otrosRows}</div>`:''}`;
-  } catch(e) { el.innerHTML=`<div class="alert alert-red">${e.message}</div>`; }
+  }catch(e){el.innerHTML=`<div class="alert alert-red">${e.message}</div>`;}
+}
+async function doDeleteEntry(id){
+  try{await deleteEntry(id);showToast('Entrada eliminada');renderHistory();}
+  catch(e){showToast('Error: '+e.message);}
 }
 
-async function doDeleteEntry(id) {
-  try { await deleteEntry(id); showToast('Entrada eliminada'); renderHistory(); }
-  catch(e) { showToast('Error: '+e.message); }
-}
-
-// ── MONTHS ─────────────────────────────────────────────────────────────────────
-async function renderMonths() {
-  const el = document.getElementById('view-months');
-  el.innerHTML = '<div class="spinner"></div>';
-  document.getElementById('tb-title').textContent = 'Resumen anual';
-  document.getElementById('tb-sub').textContent = '2026';
-  document.getElementById('tb-btn').textContent = '';
-  try {
-    const [projs, entries] = await Promise.all([getProjects(), getAllEntries()]);
-    const byMonth = {};
-    projs.forEach(p=>{ const m=p.month; if(!byMonth[m]) byMonth[m]=[]; byMonth[m].push({p, c:calcProj(p,entries)}); });
-    let tFac=0, tNet=0;
-    const rows = MES.map((name,i)=>{
-      const m=i+1, items=byMonth[m]||[];
-      if (!items.length) return `<div class="month-row month-empty"><div><div class="month-name">${name}</div><div class="month-sub">Sin proyectos</div></div><div class="month-right"><div class="month-net" style="color:var(--gray-m)">—</div></div></div>`;
-      const mFac = items.reduce((s,x)=>s+x.p.factura,0);
-      const mNet = items.reduce((s,x)=>s+x.c.net,0);
-      const mMar = mFac>0?mNet/mFac:0;
-      tFac+=mFac; tNet+=mNet;
-      const sub = items.map(({p,c})=>`
+// ── MONTHS ────────────────────────────────────────────────────────────────────
+async function renderMonths(){
+  const el=document.getElementById('view-months');
+  el.innerHTML='<div class="spinner"></div>';
+  document.getElementById('tb-title').textContent='Resumen anual';
+  document.getElementById('tb-sub').textContent='2026';
+  document.getElementById('tb-btn').textContent='';
+  try{
+    const [projs,entries]=await Promise.all([getProjects(),getAllEntries()]);
+    const byMonth={};
+    projs.forEach(p=>{ const m=p.month; if(!byMonth[m])byMonth[m]=[]; byMonth[m].push({p,c:calcProj(p,entries)}); });
+    let tFac=0,tNet=0;
+    const rows=MES.map((name,i)=>{
+      const m=i+1,items=byMonth[m]||[];
+      if(!items.length)return `<div class="month-row month-empty"><div><div class="month-name">${name}</div><div class="month-sub">Sin proyectos</div></div><div class="month-right"><div class="month-net" style="color:var(--gray-m)">—</div></div></div>`;
+      const mFac=items.reduce((s,x)=>s+x.p.factura,0);
+      const mNet=items.reduce((s,x)=>s+x.c.net,0);
+      const mMar=mFac>0?mNet/mFac:0;
+      tFac+=mFac;tNet+=mNet;
+      const sub=items.map(({p,c})=>`
         <div class="month-proj-row" onclick="openProj('${p.id}')">
           <div><span style="font-size:12px;font-weight:500">${p.name}</span>
             <span style="font-size:11px;color:var(--gray-m);margin-left:6px">${p.type}</span></div>
@@ -815,28 +1016,30 @@ async function renderMonths() {
             <span style="font-size:11px;color:var(--gray-m);margin-left:8px">${fmt$(c.net)}</span>
           </div>
         </div>`).join('');
-      const rowId = 'mr'+m;
-      return `
-        <div>
-          <div class="month-row" onclick="var e=document.getElementById('${rowId}');e.style.display=e.style.display==='block'?'none':'block'">
-            <div><div class="month-name">${name}</div><div class="month-sub">${items.length} proyecto${items.length>1?'s':''} · ${fmt$(mFac)}</div></div>
-            <div class="month-right"><div class="month-net" style="color:${netClr(mMar)}">${fmt$(mNet)}</div><div class="month-margin">${fmtP(mMar)} margen</div></div>
-          </div>
-          <div id="${rowId}" class="month-expand">${sub}</div>
-        </div>`;
+      const rowId='mr'+m;
+      return `<div>
+        <div class="month-row" onclick="var e=document.getElementById('${rowId}');e.style.display=e.style.display==='block'?'none':'block'">
+          <div><div class="month-name">${name}</div><div class="month-sub">${items.length} proyecto${items.length>1?'s':''} · ${fmt$(mFac)}</div></div>
+          <div class="month-right"><div class="month-net" style="color:${netClr(mMar)}">${fmt$(mNet)}</div><div class="month-margin">${fmtP(mMar)} margen</div></div>
+        </div>
+        <div id="${rowId}" class="month-expand">${sub}</div>
+      </div>`;
     }).join('');
-    const aMar = tFac>0?tNet/tFac:0;
-    el.innerHTML = `
+    const aMar=tFac>0?tNet/tFac:0;
+    el.innerHTML=`
       <div class="card">${rows}</div>
-      <div class="total-row"><div><div class="total-lbl">Total año 2026</div><div style="font-size:11px;color:rgba(255,255,255,.5)">${fmtP(aMar)} margen promedio</div></div><div class="total-val">${fmt$(tFac)}</div></div>`;
-  } catch(e) { el.innerHTML=`<div class="alert alert-red">${e.message}</div>`; }
+      <div class="total-row"><div><div class="total-lbl">Total año 2026</div><div style="font-size:11px;color:rgba(255,255,255,.5)">${fmtP(aMar)} margen promedio</div></div><div class="total-val">${fmt$(tFac)}</div></div>
+      <div style="margin-top:10px">
+        <button class="export-btn" id="export-btn-months" onclick="exportExcel()">📊 Exportar Reporte Excel</button>
+      </div>`;
+  }catch(e){el.innerHTML=`<div class="alert alert-red">${e.message}</div>`;}
 }
 
-// ── EMPLOYEES MODAL ────────────────────────────────────────────────────────────
-async function renderEmpEdit() {
-  try {
-    const emps = await getEmployees();
-    document.getElementById('emp-edit-list').innerHTML = emps.map(e=>`
+// ── EMPLOYEES ─────────────────────────────────────────────────────────────────
+async function renderEmpEdit(){
+  try{
+    const emps=await getEmployees();
+    document.getElementById('emp-edit-list').innerHTML=emps.map(e=>`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #F0F0F0">
         <span style="font-size:13px;font-weight:500">${e.name}</span>
         <div style="display:flex;align-items:center;gap:10px">
@@ -844,61 +1047,59 @@ async function renderEmpEdit() {
           <button onclick="doDeleteEmp('${e.id}')" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif">Eliminar</button>
         </div>
       </div>`).join('');
-  } catch(e) { showToast('Error: '+e.message); }
+  }catch(e){showToast('Error: '+e.message);}
 }
-async function addEmployee() {
-  const name = document.getElementById('new-emp-name').value.trim();
-  const rate = parseFloat(document.getElementById('new-emp-rate').value||0);
-  if (!name||!rate) { showToast('Completa nombre y tarifa'); return; }
-  try {
-    await insertEmployee({id:name.toLowerCase().replace(/\s+/g,'_')+'_'+uid().slice(0,4), name, rate});
+async function addEmployee(){
+  const name=document.getElementById('new-emp-name').value.trim();
+  const rate=parseFloat(document.getElementById('new-emp-rate').value||0);
+  if(!name||!rate){showToast('Completa nombre y tarifa');return;}
+  try{
+    await insertEmployee({id:name.toLowerCase().replace(/\s+/g,'_')+'_'+uid().slice(0,4),name,rate});
     document.getElementById('new-emp-name').value='';
     document.getElementById('new-emp-rate').value='';
-    renderEmpEdit();
-    showToast(`${name} añadido`);
-  } catch(e) { showToast('Error: '+e.message); }
+    renderEmpEdit(); showToast(`${name} añadido`);
+  }catch(e){showToast('Error: '+e.message);}
 }
-async function doDeleteEmp(id) {
-  try { await deleteEmployee(id); renderEmpEdit(); showToast('Empleado eliminado'); }
-  catch(e) { showToast('Error: '+e.message); }
+async function doDeleteEmp(id){
+  try{await deleteEmployee(id);renderEmpEdit();showToast('Empleado eliminado');}
+  catch(e){showToast('Error: '+e.message);}
 }
 
-// ── NEW PROJECT ────────────────────────────────────────────────────────────────
-async function createProject() {
-  const name   = document.getElementById('np-name').value.trim();
-  const type   = document.getElementById('np-type').value;
-  const fac    = parseFloat(document.getElementById('np-factura').value||0);
-  const month  = parseInt(document.getElementById('np-month').value);
-  const oDesc  = document.getElementById('np-otros-desc').value.trim();
-  const oAmt   = parseFloat(document.getElementById('np-otros-amt').value||0);
-  if (!name)   { showToast('Ingresa el nombre'); return; }
-  if (!fac)    { showToast('Ingresa la factura'); return; }
-  const otros  = (oDesc && oAmt) ? [{desc:oDesc, amt:oAmt}] : [];
-  try {
-    await insertProject({id:uid(), name, type, factura:fac, month, status:'active', otros});
+// ── NEW PROJECT ───────────────────────────────────────────────────────────────
+async function createProject(){
+  const name=document.getElementById('np-name').value.trim();
+  const type=document.getElementById('np-type').value;
+  const fac=parseFloat(document.getElementById('np-factura').value||0);
+  const month=parseInt(document.getElementById('np-month').value);
+  const oDesc=document.getElementById('np-otros-desc').value.trim();
+  const oAmt=parseFloat(document.getElementById('np-otros-amt').value||0);
+  if(!name){showToast('Ingresa el nombre');return;}
+  if(!fac){showToast('Ingresa la factura');return;}
+  const otros=(oDesc&&oAmt)?[{desc:oDesc,amt:oAmt}]:[];
+  try{
+    await insertProject({id:uid(),name,type,factura:fac,month,status:'active',otros});
     closeModal('m-project');
-    showToast('Proyecto creado: ' + name);
+    showToast('Proyecto creado: '+name);
     document.getElementById('np-name').value='';
     document.getElementById('np-factura').value='';
     document.getElementById('np-otros-desc').value='';
     document.getElementById('np-otros-amt').value='';
     renderDashboard();
-  } catch(e) { showToast('Error: '+e.message); }
+  }catch(e){showToast('Error: '+e.message);}
 }
 
-// ── MODAL / TOAST ──────────────────────────────────────────────────────────────
-function openModal(id) { document.getElementById(id).classList.add('open'); if(id==='m-employees') renderEmpEdit(); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{ if(e.target===bg) bg.classList.remove('open'); }));
+// ── MODAL / TOAST ─────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');if(id==='m-employees')renderEmpEdit();}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open');}));
 let toastTimer;
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
 }
 
-// ── BOOT ───────────────────────────────────────────────────────────────────────
 boot();
 </script>
 </body>
