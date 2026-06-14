@@ -384,41 +384,94 @@ function showApp() { document.getElementById('setup-screen').style.display='none
 
 // ── SEED ──────────────────────────────────────────────────────────────────────
 async function seedDemoData() {
+  // ── Employees: todos los que aparecen en el Excel original ──────────────
   const employees=[
-    {id:'vega',name:'Vega',rate:125},{id:'milton',name:'Milton',rate:112},
-    {id:'sanchez',name:'Sanchez',rate:112},{id:'betan',name:'Betan',rate:112},
-    {id:'calde',name:'Calde',rate:100},{id:'jeffrey',name:'Jeffrey',rate:150},
-    {id:'jefrey',name:'Jefrey',rate:112},{id:'seo',name:'Seo',rate:1000},
-    {id:'jay',name:'Jay',rate:15300},{id:'gabriel',name:'Gabriel',rate:150},
-    {id:'yovanie',name:'Yovanie',rate:150},{id:'ezquiel',name:'Ezquiel',rate:150},
-    {id:'alexis',name:'Alexis',rate:125},{id:'giovanie',name:'Giovanie',rate:125},
-    {id:'franco',name:'Franco',rate:112},{id:'diego',name:'Diego',rate:112},
-    {id:'yeyo',name:'Yeyo',rate:112},
+    {id:'vega',    name:'Vega',     rate:125},
+    {id:'milton',  name:'Milton',   rate:112},
+    {id:'sanchez', name:'Sanchez',  rate:112},
+    {id:'betan',   name:'Betan',    rate:112},
+    {id:'calde',   name:'Calde',    rate:112},
+    {id:'jeffrey', name:'Jeffrey',  rate:150},
+    {id:'jefrey',  name:'Jefrey',   rate:112},
+    {id:'seo',     name:'Seo',      rate:1000},
+    {id:'jay',     name:'Jay',      rate:15300},
+    {id:'gabriel', name:'Gabriel',  rate:150},
+    {id:'yovanie', name:'Yovanie',  rate:150},
+    {id:'ezquiel', name:'Ezquiel',  rate:150},
+    {id:'alexis',  name:'Alexis',   rate:125},
+    {id:'giovanie',name:'Giovanie', rate:125},
+    {id:'franco',  name:'Franco',   rate:112},
+    {id:'diego',   name:'Diego',    rate:112},
+    {id:'yeyo',    name:'Yeyo',     rate:112},
   ];
+
+  // ── Proyectos: datos exactos del Excel ──────────────────────────────────
   const projects=[
-    {id:'p1',name:'The Greens',type:'Lavado de tejas',factura:28000,month:3,status:'active',otros:[{desc:'Mangas',amt:1900},{desc:'Clorox',amt:300},{desc:'Sogas',amt:200},{desc:'Máquina de presión',amt:1200},{desc:'Seguro',amt:1120}]},
-    {id:'p2',name:'El Dorado',type:'Lavado de aceras y cortinas',factura:8485,month:3,status:'active',otros:[{desc:'Seguro',amt:339.40},{desc:'Clorox',amt:300},{desc:'Peajes',amt:50}]},
-    {id:'p3',name:'El Choli',type:'Limpieza',factura:37910,month:3,status:'completed',otros:[{desc:'Seguro',amt:1516.40},{desc:'Jabón (Dawn)',amt:50},{desc:'Máquina de presión',amt:2800},{desc:'Pulidora',amt:450}]},
-    {id:'p4',name:'Urb. Los Paseos',type:'Limpieza',factura:22000,month:4,status:'active',otros:[]},
+    {
+      id:'p1', name:'The Greens', type:'Lavado de tejas',
+      factura:28000, month:3, status:'active',
+      otros:[
+        {desc:'Mangas',             amt:1900},
+        {desc:'Clorox',             amt:300},
+        {desc:'Sogas',              amt:200},
+        {desc:'Máquina de presión', amt:1200},
+        {desc:'Seguro',             amt:1120},
+      ]
+    },
+    {
+      id:'p2', name:'El Dorado', type:'Lavado de aceras y cortinas',
+      factura:8485, month:3, status:'active',
+      otros:[
+        {desc:'Seguro', amt:339.40},
+        {desc:'Clorox', amt:300},
+        {desc:'Peajes', amt:50},
+      ]
+    },
+    {
+      id:'p3', name:'El Choli', type:'Limpieza',
+      factura:37910, month:3, status:'completed',
+      otros:[
+        {desc:'Seguro',             amt:1516.40},
+        {desc:'Jabón (Dawn)',       amt:50},
+        {desc:'Máquina de presión', amt:2800},
+        {desc:'Pulidora',           amt:450},
+      ]
+    },
+    {
+      id:'p4', name:'Urb. Los Paseos', type:'Limpieza',
+      factura:22000, month:4, status:'active',
+      otros:[]
+    },
   ];
-  const mk=(pid,date,nom,gas,note='')=>({id:'e'+uid(),project_id:pid,date,nomina:nom.map(([n,r])=>({name:n,rate:r})),gas,otros:0,note});
+
+  // ── Entries: cada fila de nómina + gasolina del Excel, fecha exacta ────
+  const mk=(pid,date,nom,gas,note='')=>({
+    id:'e'+uid(), project_id:pid, date,
+    nomina:nom.map(([n,r])=>({name:n,rate:r})),
+    gas, otros:0, note
+  });
+
   const entries=[
-    mk('p1','2026-03-03',[['Jay',15300],['Milton',112]],0),
+    // ── THE GREENS (p1) ──────────────────────────────────────────────────
+    // Gasolina por día desde el Excel: 80,80,80,80,80,100,100,100,100,80
+    mk('p1','2026-03-03',[['Jay',15300],['Milton',112]],80),
     mk('p1','2026-03-04',[['Vega',125],['Sanchez',112]],80),
     mk('p1','2026-03-05',[['Milton',112],['Sanchez',112],['Vega',125]],80),
     mk('p1','2026-03-06',[['Sanchez',112],['Milton',112]],80),
-    mk('p1','2026-03-09',[['Vega',125],['Sanchez',112],['Milton',112],['Betan',100]],80),
-    mk('p1','2026-03-10',[['Vega',125],['Sanchez',112],['Milton',112],['Betan',100]],100),
-    mk('p1','2026-03-11',[['Sanchez',112],['Milton',112],['Betan',100]],100),
-    mk('p1','2026-03-12',[['Sanchez',112],['Milton',112],['Betan',100]],100),
+    mk('p1','2026-03-09',[['Vega',125],['Sanchez',112],['Milton',112],['Betan',112]],80),
+    mk('p1','2026-03-10',[['Vega',125],['Sanchez',112],['Milton',112],['Betan',112]],100),
+    mk('p1','2026-03-11',[['Sanchez',112],['Milton',112],['Betan',112]],100),
+    mk('p1','2026-03-12',[['Sanchez',112],['Milton',112],['Betan',112]],100),
     mk('p1','2026-03-13',[['Sanchez',112],['Milton',112]],100),
     mk('p1','2026-03-16',[['Sanchez',112],['Milton',112]],80),
+
+    // ── EL DORADO (p2) ───────────────────────────────────────────────────
     mk('p2','2026-03-11',[['Vega',125]],40),
     mk('p2','2026-03-12',[['Vega',125],['Alexis',125],['Giovanie',125]],100),
     mk('p2','2026-03-13',[['Vega',125],['Alexis',125],['Giovanie',125]],100),
     mk('p2','2026-03-14',[['Vega',125],['Franco',112],['Diego',112]],100),
     mk('p2','2026-03-16',[['Vega',125]],40),
-    mk('p2','2026-03-17',[['Vega',125],['Sanchez',112],['Milton',112],['Calde',100],['Betan',100],['Seo',1000]],130),
+    mk('p2','2026-03-17',[['Vega',125],['Sanchez',112],['Milton',112],['Calde',112],['Betan',112],['Seo',1000]],130),
     mk('p2','2026-03-18',[['Sanchez',112],['Milton',112],['Ezequiel',125]],70),
     mk('p2','2026-03-19',[['Sanchez',112],['Milton',112]],40),
     mk('p2','2026-03-20',[['Sanchez',112],['Milton',112]],40),
@@ -427,7 +480,9 @@ async function seedDemoData() {
     mk('p2','2026-03-26',[['Sanchez',112],['Milton',112]],40),
     mk('p2','2026-03-27',[['Sanchez',112],['Milton',112]],40),
     mk('p2','2026-03-28',[['Sanchez',112],['Milton',112]],40),
-    mk('p3','2026-03-18',[['Vega',240],['Betan',100],['Yeyo',112],['Calde',100],['Gabriel',150],['Yovanie',150]],70),
+
+    // ── EL CHOLI (p3) ────────────────────────────────────────────────────
+    mk('p3','2026-03-18',[['Vega',240],['Betan',100],['Yeyo',112],['Calde',112],['Gabriel',150],['Yovanie',150]],70),
     mk('p3','2026-03-19',[['Vega',240],['Betan',100],['Jeffrey',150]],40),
     mk('p3','2026-03-20',[['Vega',240],['Betan',100],['Jeffrey',150]],40),
     mk('p3','2026-03-21',[['Vega',240],['Betan',200],['Jeffrey',150],['Gabriel',150],['Yovanie',150],['Ezquiel',150]],70),
@@ -438,10 +493,16 @@ async function seedDemoData() {
     mk('p3','2026-03-27',[['Jeffrey',150],['Vega',240]],40),
     mk('p3','2026-03-28',[['Jeffrey',150],['Vega',240]],40),
     mk('p3','2026-03-30',[['Jeffrey',150],['Vega',125]],40),
+
+    // ── URB. LOS PASEOS (p4) ─────────────────────────────────────────────
+    // Betan y Calde aparecen con 112 en este proyecto (igual que el Excel)
     mk('p4','2026-04-13',[['Milton',112],['Vega',125],['Jefrey',112],['Betan',112],['Calde',112]],100,'Primer día'),
-    mk('p4','2026-04-14',[],100),mk('p4','2026-04-15',[],100),
-    mk('p4','2026-04-16',[],100),mk('p4','2026-04-17',[],100),
+    mk('p4','2026-04-14',[],100),
+    mk('p4','2026-04-15',[],100),
+    mk('p4','2026-04-16',[],100),
+    mk('p4','2026-04-17',[],100),
   ];
+
   localDB={employees,projects,entries,nextId:500};
   saveLocal();
 }
