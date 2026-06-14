@@ -384,32 +384,34 @@ function showApp() { document.getElementById('setup-screen').style.display='none
 
 // ── SEED ──────────────────────────────────────────────────────────────────────
 async function seedDemoData() {
-  // ── Employees: todos los que aparecen en el Excel original ──────────────
+  // ── Employees: datos exactos del Excel Job_Profit_Analisis.xlsx ─────────
+  // Tarifas verificadas fila por fila en cada sheet
   const employees=[
-    {id:'vega',    name:'Vega',     rate:125},
-    {id:'milton',  name:'Milton',   rate:112},
-    {id:'sanchez', name:'Sanchez',  rate:112},
-    {id:'betan',   name:'Betan',    rate:112},
-    {id:'calde',   name:'Calde',    rate:112},
-    {id:'jeffrey', name:'Jeffrey',  rate:150},
-    {id:'jefrey',  name:'Jefrey',   rate:112},
-    {id:'seo',     name:'Seo',      rate:1000},
-    {id:'jay',     name:'Jay',      rate:15300},
-    {id:'gabriel', name:'Gabriel',  rate:150},
-    {id:'yovanie', name:'Yovanie',  rate:150},
-    {id:'ezquiel', name:'Ezquiel',  rate:150},
-    {id:'alexis',  name:'Alexis',   rate:125},
-    {id:'giovanie',name:'Giovanie', rate:125},
-    {id:'franco',  name:'Franco',   rate:112},
-    {id:'diego',   name:'Diego',    rate:112},
-    {id:'yeyo',    name:'Yeyo',     rate:112},
+    {id:'vega',     name:'Vega',      rate:125},   // The Greens, El Dorado, El Choli, Los Paseos
+    {id:'milton',   name:'Milton',    rate:112},   // The Greens, El Dorado, Los Paseos
+    {id:'sanchez',  name:'Sanchez',   rate:112},   // The Greens, El Dorado
+    {id:'betan',    name:'Betan',     rate:112},   // The Greens, El Dorado, Los Paseos (100 en El Choli = pago especial)
+    {id:'calde',    name:'Calde',     rate:100},   // El Dorado, Los Paseos
+    {id:'jeffrey',  name:'Jeffrey',   rate:150},   // El Choli
+    {id:'jefrey',   name:'Jefrey',    rate:112},   // Los Paseos (distinto a Jeffrey)
+    {id:'seo',      name:'Seo',       rate:1000},  // El Dorado (día especial)
+    {id:'jay',      name:'Jay',       rate:15300}, // The Greens (día especial subcontrato)
+    {id:'gabriel',  name:'Gabriel',   rate:150},   // El Choli
+    {id:'yovanie',  name:'Yovanie',   rate:150},   // El Choli
+    {id:'ezquiel',  name:'Ezquiel',   rate:150},   // El Choli
+    {id:'ezequiel', name:'Ezequiel',  rate:125},   // El Dorado (distinto a Ezquiel)
+    {id:'alexis',   name:'Alexis',    rate:125},   // El Dorado
+    {id:'giovanie', name:'Giovanie',  rate:125},   // El Dorado
+    {id:'franco',   name:'Franco',    rate:112},   // El Dorado
+    {id:'diego',    name:'Diego',     rate:112},   // El Dorado
+    {id:'yeyo',     name:'Yeyo',      rate:112},   // El Choli
   ];
 
   // ── Proyectos: datos exactos del Excel ──────────────────────────────────
   const projects=[
     {
       id:'p1', name:'The Greens', type:'Lavado de tejas',
-      factura:28000, month:3, status:'active',
+      factura:28000, month:3, status:'completed',
       otros:[
         {desc:'Mangas',             amt:1900},
         {desc:'Clorox',             amt:300},
@@ -420,7 +422,7 @@ async function seedDemoData() {
     },
     {
       id:'p2', name:'El Dorado', type:'Lavado de aceras y cortinas',
-      factura:8485, month:3, status:'active',
+      factura:8485, month:3, status:'completed',
       otros:[
         {desc:'Seguro', amt:339.40},
         {desc:'Clorox', amt:300},
@@ -444,7 +446,16 @@ async function seedDemoData() {
     },
   ];
 
-  // ── Entries: cada fila de nómina + gasolina del Excel, fecha exacta ────
+  // ── Entries: cada día del Excel con fecha exacta y nómina exacta ────────
+  // Fechas: Excel serial → fecha real (epoch 1899-12-30)
+  // 46084=2026-03-03, 46085=2026-03-04, 46086=2026-03-05, 46087=2026-03-06
+  // 46090=2026-03-09, 46091=2026-03-10, 46092=2026-03-11, 46093=2026-03-12
+  // 46094=2026-03-13, 46095=2026-03-14, 46097=2026-03-16, 46098=2026-03-17
+  // 46099=2026-03-18, 46100=2026-03-19, 46101=2026-03-20, 46102=2026-03-21
+  // 46104=2026-03-23, 46105=2026-03-24, 46106=2026-03-25, 46107=2026-03-26
+  // 46108=2026-03-27, 46109=2026-03-28, 46111=2026-03-30
+  // 46125=2026-04-13, 46126=2026-04-14, 46127=2026-04-15, 46128=2026-04-16, 46129=2026-04-17
+
   const mk=(pid,date,nom,gas,note='')=>({
     id:'e'+uid(), project_id:pid, date,
     nomina:nom.map(([n,r])=>({name:n,rate:r})),
@@ -452,8 +463,7 @@ async function seedDemoData() {
   });
 
   const entries=[
-    // ── THE GREENS (p1) ──────────────────────────────────────────────────
-    // Gasolina por día desde el Excel: 80,80,80,80,80,100,100,100,100,80
+    // ── THE GREENS (p1) — Gasolina: 80,80,80,80,80,100,100,100,100,80 ──
     mk('p1','2026-03-03',[['Jay',15300],['Milton',112]],80),
     mk('p1','2026-03-04',[['Vega',125],['Sanchez',112]],80),
     mk('p1','2026-03-05',[['Milton',112],['Sanchez',112],['Vega',125]],80),
@@ -465,13 +475,13 @@ async function seedDemoData() {
     mk('p1','2026-03-13',[['Sanchez',112],['Milton',112]],100),
     mk('p1','2026-03-16',[['Sanchez',112],['Milton',112]],80),
 
-    // ── EL DORADO (p2) ───────────────────────────────────────────────────
+    // ── EL DORADO (p2) — Gasolina: 40,100,100,100,40,130,70,40,40,40,40,40,40,40 ──
     mk('p2','2026-03-11',[['Vega',125]],40),
     mk('p2','2026-03-12',[['Vega',125],['Alexis',125],['Giovanie',125]],100),
     mk('p2','2026-03-13',[['Vega',125],['Alexis',125],['Giovanie',125]],100),
     mk('p2','2026-03-14',[['Vega',125],['Franco',112],['Diego',112]],100),
     mk('p2','2026-03-16',[['Vega',125]],40),
-    mk('p2','2026-03-17',[['Vega',125],['Sanchez',112],['Milton',112],['Calde',112],['Betan',112],['Seo',1000]],130),
+    mk('p2','2026-03-17',[['Vega',125],['Sanchez',112],['Milton',112],['Calde',100],['Betan',112],['Seo',1000]],130),
     mk('p2','2026-03-18',[['Sanchez',112],['Milton',112],['Ezequiel',125]],70),
     mk('p2','2026-03-19',[['Sanchez',112],['Milton',112]],40),
     mk('p2','2026-03-20',[['Sanchez',112],['Milton',112]],40),
@@ -481,8 +491,11 @@ async function seedDemoData() {
     mk('p2','2026-03-27',[['Sanchez',112],['Milton',112]],40),
     mk('p2','2026-03-28',[['Sanchez',112],['Milton',112]],40),
 
-    // ── EL CHOLI (p3) ────────────────────────────────────────────────────
-    mk('p3','2026-03-18',[['Vega',240],['Betan',100],['Yeyo',112],['Calde',112],['Gabriel',150],['Yovanie',150]],70),
+    // ── EL CHOLI (p3) — Gasolina: 70,40,40,70,40,40,40,40,40,40,40 ──────
+    // Nota: Vega trabaja a tarifa especial en El Choli (240/día vs 125 normal)
+    // Betan también a tarifa especial algunos días (100, 200)
+    // Jeffrey a tarifa especial algunos días (150, 300)
+    mk('p3','2026-03-18',[['Vega',240],['Betan',100],['Yeyo',112],['Calde',100],['Gabriel',150],['Yovanie',150]],70),
     mk('p3','2026-03-19',[['Vega',240],['Betan',100],['Jeffrey',150]],40),
     mk('p3','2026-03-20',[['Vega',240],['Betan',100],['Jeffrey',150]],40),
     mk('p3','2026-03-21',[['Vega',240],['Betan',200],['Jeffrey',150],['Gabriel',150],['Yovanie',150],['Ezquiel',150]],70),
@@ -494,8 +507,8 @@ async function seedDemoData() {
     mk('p3','2026-03-28',[['Jeffrey',150],['Vega',240]],40),
     mk('p3','2026-03-30',[['Jeffrey',150],['Vega',125]],40),
 
-    // ── URB. LOS PASEOS (p4) ─────────────────────────────────────────────
-    // Betan y Calde aparecen con 112 en este proyecto (igual que el Excel)
+    // ── URB. LOS PASEOS (p4) — Gasolina: 100,100,100,100,100 ────────────
+    // Solo el primer día tiene nómina registrada; días 2-5 solo gasolina
     mk('p4','2026-04-13',[['Milton',112],['Vega',125],['Jefrey',112],['Betan',112],['Calde',112]],100,'Primer día'),
     mk('p4','2026-04-14',[],100),
     mk('p4','2026-04-15',[],100),
